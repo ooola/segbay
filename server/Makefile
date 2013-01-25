@@ -1,17 +1,12 @@
-FILES      := /Users/ola/go
 RSYNC      := rsync -rltgoD --delete --force -e "ssh -o ClearAllForwardings=yes"
-SCP        := scp -o ClearAllForwardings=yes
-BUILDHOST  := scrape
-BUILDCMD   := ssh -o ClearAllForwardings=yes $(BUILDHOST) "(cd ~/go/src/segbay/server && go build)"
-BUILDBIN   := /home/ola/go/src/segbay/server/server
 TESTHOST   := segbay
 TESTBIN    := /usr/local/bidserver/bidserver
 TESTPY     := /usr/local/bidserver/bid.py
 FIXUPBIN   := ssh -o ClearAllForwardings=yes $(TESTHOST) "chmod 755 $(TESTBIN) $(TESTPY) && chown root:root $(TESTBIN) $(TESTPY)"
-BIN        := server
+BIN        := main
 PYBIN      := bid.py
 
-LOCALHTML  := /Users/ola/Dropbox/Sources/ebay-buy/segbaysnipe/public_html/
+LOCALHTML  := /Users/ola/Dropbox/Sources/segbay/segbaysnipe/public_html/
 REMOTEHTML := /home/segbaysn/public_html/
 FIXUPHTML  := ssh -o ClearAllForwardings=yes $(TESTHOST) "(cd /home/segbaysn/public_html/ && chown -R segbaysn:segbaysn * .ftpquota .htaccess && chown segbaysn:segbaysn ../public_html && find . -type f -exec chmod 644 {} \; && find . -type d -exec chmod 755 {} \;)"
 
@@ -20,19 +15,14 @@ REMOTERC   := /etc/init.d/bidserver
 FIXUPRC    := ssh -o ClearAllForwardings=yes $(TESTHOST) "chmod 755 $(REMOTERC) && chown root:root $(REMOTERC)"
 RESTART    := ssh -o ClearAllForwardings=yes $(TESTHOST) "$(REMOTERC) restart"
 
-default: sync build upload
+default: build upload
 
-.PHONY: sync build upload install restart html 
-sync:
-	rm -f $(BIN)
-	rm -f $(FILES)/src/segbay/server/server
-	$(RSYNC) $(FILES) $(BUILDHOST):.
+.PHONY: build upload install restart html 
 
-build: sync
-	$(BUILDCMD)
+build:
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build main.go
 
 upload: build
-	$(RSYNC) $(BUILDHOST):$(BUILDBIN) $(BIN)
 	$(RSYNC) $(BIN) $(TESTHOST):$(TESTBIN)
 	$(RSYNC) $(PYBIN) $(TESTHOST):$(TESTPY)
 	$(FIXUPBIN)
