@@ -1,0 +1,7 @@
+Check Item.AutoPay, if true immediate payment is required, and can't bid on it. See http://developer.ebay.com/DevZone/shopping/docs/CallRef/GetSingleItem.html.
+- Maps are not safe for concurrent use: it's not defined what happens when you
+  read and write to them simultaneously. If you need to read from and write to
+a map from concurrently executing goroutines, the accesses must be mediated by
+some kind of synchronization mechanism. One common way to protect maps is with
+sync.RWMutex. 
+- See http://blog.golang.org/2013/02/go-maps-in-action.html
